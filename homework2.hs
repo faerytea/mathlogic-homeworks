@@ -1,5 +1,3 @@
-module MLHWTwo where
-
 import MathlogicCommon
 import MathlogicParser
 
