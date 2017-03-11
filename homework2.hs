@@ -1,3 +1,5 @@
+module MLHWTwo where
+
 import MathlogicCommon
 import MathlogicParser
 
@@ -14,7 +16,7 @@ main = do
     return ()
 
 extractPreposition :: File12 -> File12
-extractPreposition (File12 (Hdr prepositions expression) (Proof proof)) = (File12 (Hdr (newprep) (Implication (wrap (alpha)) (expression))) (Proof (go [] proof []))) where
+extractPreposition (File12 (Hdr prepositions expression) (Proof proof)) = (File12 (Hdr (newprep) (Implication (wrap (alpha)) (expression))) (Proof (go [] (map decompose proof) []))) where
     wrap :: Expression -> Disjunction
     wrap e = decompose (Ad (Ac (An e)))
     newprep = init prepositions
@@ -44,9 +46,9 @@ extractPreposition (File12 (Hdr prepositions expression) (Proof proof)) = (File1
             dj = intmpexp rest where
                 intmpexp :: [Expression] -> Expression
                 intmpexp [] = error $ show e
-                intmpexp ((Implication j me):rest) --- Дописать чёртов МР
+                intmpexp ((Implication j me):rest1) --- Дописать чёртов МР
                     | ((decompose e) == (decompose me)) && (intintmpexp rest) = Ae j
-                    | otherwise = intmpexp rest where
+                    | otherwise = intmpexp rest1 where
                         intintmpexp []  = False
                         intintmpexp (test:irest)
                             | (decompose test) == decompose (Ae j) = True
