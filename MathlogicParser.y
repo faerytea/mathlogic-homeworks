@@ -67,6 +67,8 @@ Tok
 {
 class MathlogicToken a where
     decompose :: a -> a
+    collectMT :: (String -> s -> s) -> s -> a -> s
+    -- mapMT :: MathlogicToken b => (a -> s -> s) -> (a -> s -> s -> s) -> (String -> s) -> s -> b -> s
 
 data PropVariable = PVar String --deriving (MathlogicToken)
 data Token = Token PropVariable | Not Token | An Expression | Scheme Char --deriving (MathlogicToken)
@@ -133,20 +135,40 @@ instance MathlogicToken Expression where
     decompose (Ae (Ad (Ac (An a)))) = decompose a
     decompose (Implication d e)     = Implication (decompose d) (decompose e)
     decompose (Ae a)                = Ae (decompose a)
+    collectMT f state (Implication d e) = collectMT f (collectMT f state d) e
+    collectMT f state (Ae a)            = collectMT f state a
+    -- mapMT exit1 exit2 transform state exp@(Implication d e) = exit2 exp (mapMT exit1 exit2 transform state d) (mapMT exit1 exit2 transform state e)
+    -- mapMT exit1 exit2 transform state exp@(Ae a)            = exit1 exp (mapMT exit1 exit2 transform state a)
 
 instance MathlogicToken Disjunction where
     decompose (Ad (Ac (An (Ae a)))) = decompose a
     decompose (Or d c)              = Or (decompose d) (decompose c)
     decompose (Ad a)                = Ad (decompose a)
+    collectMT f state (Or d e)          = collectMT f (collectMT f state d) e
+    collectMT f state (Ad a)            = collectMT f state a
+    -- mapMT exit1 exit2 transform state exp@(Or d e)          = exit2 exp (mapMT exit1 exit2 transform state d) (mapMT exit1 exit2 transform state e)
+    -- mapMT exit1 exit2 transform state exp@(Ad a)            = exit1 exp (mapMT exit1 exit2 transform state a)
 
 instance MathlogicToken Conjunction where
     decompose (Ac (An (Ae (Ad a)))) = decompose a
     decompose (And c t)             = And (decompose c) (decompose t)
     decompose (Ac a)                = Ac (decompose a)
+    collectMT f state (And d e)         = collectMT f (collectMT f state d) e
+    collectMT f state (Ac a)            = collectMT f state a
+    -- mapMT exit1 exit2 transform state exp@(And d e)         = exit2 exp (mapMT exit1 exit2 transform state d) (mapMT exit1 exit2 transform state e)
+    -- mapMT exit1 exit2 transform state exp@(Ac a)            = exit1 exp (mapMT exit1 exit2 transform state a)
 
 instance MathlogicToken Token where
     decompose (An (Ae (Ad (Ac a)))) = decompose a
-    decompose (Not t)               = decompose t
+    decompose (Not t)               = Not (decompose t)
     decompose (An a)                = An (decompose a)
     decompose  a                    = a
+    collectMT f state (Token (PVar a))  = f  a  state
+    collectMT f state (Scheme a)        = f [a] state
+    collectMT f state (Not a)           = collectMT f state a
+    collectMT f state (An a)            = collectMT f state a
+    -- mapMT exit1 exit2 transform state exp@(Not d)           = exit1 exp (mapMT exit1 exit2 transform state d)
+    -- mapMT exit1 exit2 transform state exp@(An a)            = exit1 exp (mapMT exit1 exit2 transform state a)
+    -- mapMT exit1 exit2 transform state (Scheme a)            = transform [a]
+    -- mapMT exit1 exit2 transform state (Token (PVar a))      = transform a
 }
