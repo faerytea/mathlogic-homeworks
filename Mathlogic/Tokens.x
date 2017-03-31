@@ -1,5 +1,5 @@
 {
-module MathlogicTokens where
+module Mathlogic.Tokens where
 }
 
 %wrapper "basic"

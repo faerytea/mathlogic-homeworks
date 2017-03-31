@@ -1,6 +1,6 @@
 {
-module MathlogicParser where
-import MathlogicTokens
+module Mathlogic.Parser where
+import Mathlogic.Tokens
 import Data.List(intercalate)
 }
 
@@ -65,10 +65,35 @@ Tok
     | '(' Expr ')'            { An $2 }
 
 {
+data FakeMT = FakeT Token
+            | FakeD Disjunction
+            | FakeC Conjunction
+            | FakeE Expression
+
 class MathlogicToken a where
-    decompose :: a -> a
-    collectMT :: (String -> s -> s) -> s -> a -> s
-    -- mapMT :: MathlogicToken b => (a -> s -> s) -> (a -> s -> s -> s) -> (String -> s) -> s -> b -> s
+    decompose      :: a -> a
+    collectMT      :: (String -> s -> s) -> s -> a -> s
+    fakeWrap       :: a -> FakeMT
+    unwrap         :: FakeMT -> a
+    makeExpression :: a -> Expression
+    -- экзистенциальные типы (на самом деле тут костыль-обёртка)
+
+mapMT :: (MathlogicToken a, MathlogicToken b, MathlogicToken c) => (a -> s -> s) -> (b -> s -> s -> s) -> (String -> s) -> c -> s
+mapMT exit1 exit2 transform exp = mapFMT (wrapfn exit1) (wrapfn exit2) transform (fakeWrap exp) where
+    wrapfn f = \x -> f (unwrap x)
+    
+    -- The BIGGEST crutch in this project
+mapFMT :: (FakeMT -> s -> s) -> (FakeMT -> s -> s -> s) -> (String -> s) -> FakeMT -> s
+mapFMT exit1 exit2 transform exp@(FakeE (Implication d e)) = exit2 exp (mapFMT exit1 exit2 transform (fakeWrap d)) (mapFMT exit1 exit2 transform (fakeWrap e))
+mapFMT exit1 exit2 transform exp@(FakeE (Ae a))            = exit1 exp (mapFMT exit1 exit2 transform (fakeWrap a))
+mapFMT exit1 exit2 transform exp@(FakeD (Or d e))          = exit2 exp (mapFMT exit1 exit2 transform (fakeWrap d)) (mapFMT exit1 exit2 transform (fakeWrap e))
+mapFMT exit1 exit2 transform exp@(FakeD (Ad a))            = exit1 exp (mapFMT exit1 exit2 transform (fakeWrap a))
+mapFMT exit1 exit2 transform exp@(FakeC (And d e))         = exit2 exp (mapFMT exit1 exit2 transform (fakeWrap d)) (mapFMT exit1 exit2 transform (fakeWrap e))
+mapFMT exit1 exit2 transform exp@(FakeC (Ac a))            = exit1 exp (mapFMT exit1 exit2 transform (fakeWrap a))
+mapFMT exit1 exit2 transform exp@(FakeT (Not d))           = exit1 exp (mapFMT exit1 exit2 transform (fakeWrap d))
+mapFMT exit1 exit2 transform exp@(FakeT (An a))            = exit1 exp (mapFMT exit1 exit2 transform (fakeWrap a))
+mapFMT exit1 exit2 transform (FakeT (Scheme a))            = transform [a]
+mapFMT exit1 exit2 transform (FakeT (Token (PVar a)))      = transform a
 
 data PropVariable = PVar String --deriving (MathlogicToken)
 data Token = Token PropVariable | Not Token | An Expression | Scheme Char --deriving (MathlogicToken)
@@ -137,8 +162,9 @@ instance MathlogicToken Expression where
     decompose (Ae a)                = Ae (decompose a)
     collectMT f state (Implication d e) = collectMT f (collectMT f state d) e
     collectMT f state (Ae a)            = collectMT f state a
-    -- mapMT exit1 exit2 transform state exp@(Implication d e) = exit2 exp (mapMT exit1 exit2 transform state d) (mapMT exit1 exit2 transform state e)
-    -- mapMT exit1 exit2 transform state exp@(Ae a)            = exit1 exp (mapMT exit1 exit2 transform state a)
+    fakeWrap a = FakeE a
+    unwrap (FakeE a) = a
+    makeExpression e = decompose e
 
 instance MathlogicToken Disjunction where
     decompose (Ad (Ac (An (Ae a)))) = decompose a
@@ -146,8 +172,9 @@ instance MathlogicToken Disjunction where
     decompose (Ad a)                = Ad (decompose a)
     collectMT f state (Or d e)          = collectMT f (collectMT f state d) e
     collectMT f state (Ad a)            = collectMT f state a
-    -- mapMT exit1 exit2 transform state exp@(Or d e)          = exit2 exp (mapMT exit1 exit2 transform state d) (mapMT exit1 exit2 transform state e)
-    -- mapMT exit1 exit2 transform state exp@(Ad a)            = exit1 exp (mapMT exit1 exit2 transform state a)
+    fakeWrap a = FakeD a
+    unwrap (FakeD a) = a
+    makeExpression d = decompose $ Ae d
 
 instance MathlogicToken Conjunction where
     decompose (Ac (An (Ae (Ad a)))) = decompose a
@@ -155,8 +182,9 @@ instance MathlogicToken Conjunction where
     decompose (Ac a)                = Ac (decompose a)
     collectMT f state (And d e)         = collectMT f (collectMT f state d) e
     collectMT f state (Ac a)            = collectMT f state a
-    -- mapMT exit1 exit2 transform state exp@(And d e)         = exit2 exp (mapMT exit1 exit2 transform state d) (mapMT exit1 exit2 transform state e)
-    -- mapMT exit1 exit2 transform state exp@(Ac a)            = exit1 exp (mapMT exit1 exit2 transform state a)
+    fakeWrap a = FakeC a
+    unwrap (FakeC a) = a
+    makeExpression c = decompose $ Ae $ Ad c
 
 instance MathlogicToken Token where
     decompose (An (Ae (Ad (Ac a)))) = decompose a
@@ -167,8 +195,7 @@ instance MathlogicToken Token where
     collectMT f state (Scheme a)        = f [a] state
     collectMT f state (Not a)           = collectMT f state a
     collectMT f state (An a)            = collectMT f state a
-    -- mapMT exit1 exit2 transform state exp@(Not d)           = exit1 exp (mapMT exit1 exit2 transform state d)
-    -- mapMT exit1 exit2 transform state exp@(An a)            = exit1 exp (mapMT exit1 exit2 transform state a)
-    -- mapMT exit1 exit2 transform state (Scheme a)            = transform [a]
-    -- mapMT exit1 exit2 transform state (Token (PVar a))      = transform a
+    fakeWrap a = FakeT a
+    unwrap (FakeT a) = a
+    makeExpression t = decompose $ Ae $ Ad $ Ac t
 }

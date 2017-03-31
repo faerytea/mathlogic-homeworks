@@ -1,19 +1,30 @@
 all : homework1 homework2
 
-homework1 : MathlogicCommon.o
+homework1 : Mathlogic.o Mathlogic/Annotations.o
 	ghc -O2 homework1
 
-homework2 : MathlogicCommon.o
+homework2 : Mathlogic.o Mathlogic/Deduction.o
 	ghc -O2 homework2
+	
+Mathlogic/Annotations.o : Mathlogic.o Mathlogic/Parser.o
+	ghc -O2 Mathlogic/Annotations.hs
+	
+Mathlogic/Deduction.o : Mathlogic.o Mathlogic/Parser.o
+	ghc -O2 Mathlogic/Deduction.hs
 
-MathlogicCommon.o : MathlogicParser.hs
-	ghc -O2 MathlogicCommon.hs
+Mathlogic.o : Mathlogic/Parser.o Mathlogic/Tokens.o Mathlogic/Axioms.o
+	ghc -O2 Mathlogic.hs
 
-MathlogicParser.hs : MathlogicTokens.hs
-	happy MathlogicParser.y
+Mathlogic/Axioms.o : Mathlogic/Parser.o Mathlogic/Tokens.o
+	ghc -O2 Mathlogic.hs
 
-MathlogicTokens.hs : 
-	alex MathlogicTokens.x
+Mathlogic/Parser.o : Mathlogic/Tokens.o
+	happy Mathlogic/Parser.y
+	ghc -O2 Mathlogic/Parser.hs
+
+Mathlogic/Tokens.o : 
+	alex Mathlogic/Tokens.x
+	ghc -O2 Mathlogic/Tokens.hs
 
 clean :
-	rm -f *.hi *.o *.exe homework1 homework2 MathlogicParser.hs MathlogicTokens.hs
+	rm -f ./Mathlogic/*.hi ./Mathlogic/*.o ./Mathlogic/*.exe *.hi *.o *.exe homework1 homework2 Mathlogic/Parser.hs Mathlogic/Tokens.hs
