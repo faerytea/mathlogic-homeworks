@@ -35,9 +35,6 @@ extractAllPrepositions f@(File12 (Hdr [] _) _) = f
 extractAllPrepositions f = extractAllPrepositions $ extractPreposition f
 
 generateProof :: Expression -> Either Value File12
--- generateProof e = case wrongPrepositions of
-    -- Just (Left v) -> Left v
-    -- Nothing       -> Right $ File12 (Hdr [] e) (Proof result)
 generateProof e = if null wrongPrepositions then Right $ File12 (Hdr [] e) (Proof result)
                                             else fromJust wrongPrepositions
       where
@@ -262,8 +259,8 @@ excludedThird = simplifyProof $
 
 generateTrivialProof :: Value -> Expression -> Either Value File12
 generateTrivialProof valuesPair@(trueSet, falseSet) exp 
-    | (snd trivialProof) && (exp == (slast $ fst trivialProof)) = Right $ File12 (Hdr prepositions exp) (Proof preparedTrivialProof)
-    | otherwise                                                 = Left valuesPair where
+    | (snd trivialProof) && ((decompose exp) == (slast $ fst trivialProof)) = Right $ File12 (Hdr prepositions exp) (Proof preparedTrivialProof)
+    | otherwise                                                             = Left valuesPair where
         prepositions = map (\x -> makeExpression $ (if x `DS.member` trueSet then id else Not) $ Token $ PVar x) (DS.toAscList $ DS.union trueSet falseSet)
         slast :: S.Seq a -> a
         slast s = S.index s ((S.length s) - 1)
@@ -313,7 +310,6 @@ excludePreposition f12f@(File12 (Hdr (excludedPrep:otherPreps) exp) _) = case ge
             "(!P->A)->(P|!P)->A",
             "(P|!P)->A",
             "A"]))))
-
 
 collectPVars :: Expression -> DS.Set String
 collectPVars exp = mapFMT (\_ s -> s) (\_ s1 s2 -> DS.union s1 s2) (\x -> DS.singleton x) (fakeWrap exp)
