@@ -97,11 +97,11 @@ mapFMT exit1 exit2 transform (FakeT (Token (PVar a)))      = transform a
 
 getProofFromFile12 (File12 _ (Proof proof)) = proof
 
-data PropVariable = PVar String --deriving (MathlogicToken)
-data Token = Token PropVariable | Not Token | An Expression | Scheme Char --deriving (MathlogicToken)
-data Conjunction = Ac Token | And Conjunction Token --deriving (MathlogicToken)
-data Disjunction = Ad Conjunction | Or Disjunction Conjunction --deriving (MathlogicToken)
-data Expression = Ae Disjunction | Implication Disjunction Expression --deriving (MathlogicToken)
+data PropVariable = PVar String
+data Token = Token PropVariable | Not Token | An Expression | Scheme Char 
+data Conjunction = Ac Token | And Conjunction Token 
+data Disjunction = Ad Conjunction | Or Disjunction Conjunction 
+data Expression = Ae Disjunction | Implication Disjunction Expression 
 
 data Header = Hdr [Expression] Expression
 data Proof = Proof [Expression]

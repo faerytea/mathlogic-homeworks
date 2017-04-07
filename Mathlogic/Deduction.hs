@@ -34,7 +34,7 @@ extractPreposition (File12 (Hdr prepositions expression) (Proof proof)) = (File1
             dj = intmpexp rest where
                 intmpexp :: [Expression] -> Expression
                 intmpexp [] = error $ show e
-                intmpexp ((Implication j me):rest1) --- Дописать чёртов МР
+                intmpexp ((Implication j me):rest1)
                     | ((decompose e) == (decompose me)) && (intintmpexp rest) = Ae j
                     | otherwise = intmpexp rest1 where
                         intintmpexp []  = False
@@ -44,6 +44,5 @@ extractPreposition (File12 (Hdr prepositions expression) (Proof proof)) = (File1
                 intmpexp (e:rest) = intmpexp rest
             mpProof = [
                         Implication (decompose (Ad (Ac (An (Implication (decompose (Ad (Ac (An alpha)))) (Implication (decompose (Ad (Ac (An dj)))) (decompose e))))))) (Implication (decompose (Ad (Ac (An alpha)))) (decompose e)),
-                        -- Implication (decompose (Ad (Ac (An (Implication (decompose (Ad (Ac (An (Implication (decompose (Ad (Ac (An alpha)))) (decompose dj)))))) (Implication (decompose (Ad (Ac (An alpha)))) (Implication (decompose (Ad (Ac (An dj)))) (decompose e)))))))) (Implication (decompose (Ad (Ac (An alpha)))) (decompose e))
                         Implication (decompose (Ad (Ac (An (Implication (decompose (Ad (Ac (An alpha)))) (decompose dj)))))) (Implication (decompose (Ad (Ac (An (Implication (decompose (Ad (Ac (An alpha)))) (Implication (decompose (Ad (Ac (An dj)))) (decompose e))))))) (Implication (decompose (Ad (Ac (An alpha)))) (decompose e)))
                     ]

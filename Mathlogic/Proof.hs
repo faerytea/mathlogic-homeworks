@@ -20,16 +20,6 @@ extract name (trueSet, falseSet) = case (DS.member name trueSet, DS.member name 
                                         (False, False) -> (Token $ PVar name, True)
                                         (True, True)   -> error ((show name) ++ " true and false at same time!");
 
--- generateProof :: Expression -> Either Value File12
--- generateProof exp = case generateTrivialProof (collectPVars exp, DS.empty) exp of 
-    -- Left err   -> Left err
-    -- Right good -> incrementalGenerator good where
-        -- incrementalGenerator f12@(File12 (Hdr pp exp) _)
-            -- | pp == []  = Right f12
-            -- | otherwise = case excludePreposition f12 of
-                -- Left val   -> Left val
-                -- Right next -> incrementalGenerator next
-
 extractAllPrepositions :: File12 -> File12
 extractAllPrepositions f@(File12 (Hdr [] _) _) = f
 extractAllPrepositions f = extractAllPrepositions $ extractPreposition f
