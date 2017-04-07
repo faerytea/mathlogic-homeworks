@@ -6,6 +6,7 @@ import Data.Text(pack, unpack)
 import Data.Text.IO(readFile, writeFile, appendFile)
 import Data.Set(member)
 import Data.Foldable(toList)
+import Data.List(intercalate)
 
 main = do
     args <- getArgs
@@ -15,7 +16,7 @@ main = do
 action args = do
     str <- readFile (head args)
     let answer = case generateProof $ parseFile3 (unpack str) of 
-                        Left (t,f) -> "Высказывание ложно при " ++ (concat $ map (\x -> x ++ "=" ++ (if x `member` t then "И" else "Л")) ((toList t) ++ (toList f)))
+                        Left (t,f) -> "Высказывание ложно при " ++ (intercalate ", " $ map (\x -> x ++ "=" ++ (if x `member` t then "И" else "Л")) ((toList t) ++ (toList f)))
                         Right f12  -> show f12
     writeFile (head $ tail $ args) (pack answer)
     appendFile (head $ tail $ args) (pack "\n")
