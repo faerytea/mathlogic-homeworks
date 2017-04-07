@@ -95,6 +95,8 @@ mapFMT exit1 exit2 transform exp@(FakeT (An a))            = exit1 exp (mapFMT e
 mapFMT exit1 exit2 transform (FakeT (Scheme a))            = transform [a]
 mapFMT exit1 exit2 transform (FakeT (Token (PVar a)))      = transform a
 
+getProofFromFile12 (File12 _ (Proof proof)) = proof
+
 data PropVariable = PVar String --deriving (MathlogicToken)
 data Token = Token PropVariable | Not Token | An Expression | Scheme Char --deriving (MathlogicToken)
 data Conjunction = Ac Token | And Conjunction Token --deriving (MathlogicToken)
