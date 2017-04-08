@@ -28,7 +28,7 @@ extractPreposition (File12 (Hdr prepositions expression) (Proof proof)) = (File1
             axiomProof = [
                             Implication (decompose (Ad (Ac (An (e))))) (Implication (decompose (Ad (Ac (An (alpha))))) (decompose e)),
                             decompose e
-                        ]
+                         ]
         printMP p = mpProof ++ p where
             dj :: Expression
             dj = intmpexp rest where
@@ -45,4 +45,4 @@ extractPreposition (File12 (Hdr prepositions expression) (Proof proof)) = (File1
             mpProof = [
                         Implication (decompose (Ad (Ac (An (Implication (decompose (Ad (Ac (An alpha)))) (Implication (decompose (Ad (Ac (An dj)))) (decompose e))))))) (Implication (decompose (Ad (Ac (An alpha)))) (decompose e)),
                         Implication (decompose (Ad (Ac (An (Implication (decompose (Ad (Ac (An alpha)))) (decompose dj)))))) (Implication (decompose (Ad (Ac (An (Implication (decompose (Ad (Ac (An alpha)))) (Implication (decompose (Ad (Ac (An dj)))) (decompose e))))))) (Implication (decompose (Ad (Ac (An alpha)))) (decompose e)))
-                    ]
+                      ]
