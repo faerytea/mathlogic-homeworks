@@ -32,6 +32,12 @@ Mathlogic/Tokens.o : Mathlogic/Tokens.x
 	alex Mathlogic/Tokens.x
 	ghc -O2 Mathlogic/Tokens.hs
 
+Mathlogic/Predicates/Checker.o : Mathlogic/Predicates/Parser.o Mathlogic/Predicates/Axioms.o
+	ghc -O2 Mathlogic/Predicates/Checker.hs
+
+Mathlogic/Predicates/Axioms.o : Mathlogic/Predicates/Parser.o Mathlogic/Predicates/Tokens.o Mathlogic/Predicates/Axioms.hs
+	ghc -O2 Mathlogic/Predicates/Axioms.hs
+
 Mathlogic/Predicates/Parser.o : Mathlogic/Predicates/Tokens.o Mathlogic/Predicates/Parser.y
 	happy Mathlogic/Predicates/Parser.y
 	ghc -O2 Mathlogic/Predicates/Parser.hs

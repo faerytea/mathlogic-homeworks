@@ -134,22 +134,46 @@ walkTerm transform zero merge term@(Var s) = transform s
 walkTerm transform zero merge term@(Zero) = zero
 walkTerm transform zero merge term@(Hatch t) = merge term [walkTerm transform zero merge t]
 
-walk :: (Term -> s) -> (QType -> String -> s) -> (Expression -> [s] -> s) -> Expression -> s
-walk transform quantifier merge exp@(Implication e1 e2) = merge exp [walk transform quantifier merge e1, walk transform quantifier merge e2]
-walk transform quantifier merge exp@(Disjunction e1 e2) = merge exp [walk transform quantifier merge e1, walk transform quantifier merge e2]
-walk transform quantifier merge exp@(Conjunction e1 e2) = merge exp [walk transform quantifier merge e1, walk transform quantifier merge e2]
-walk transform quantifier merge exp@(Predicate _ ts) = merge exp $ map transform ts
-walk transform quantifier merge exp@(Not e) = merge exp [walk transform quantifier merge e]
-walk transform quantifier merge exp@(Quantifier q var e) = merge exp [quantifier q var, walk transform quantifier merge e]
+walk :: (Term -> s) -> (Expression -> [s] -> s) -> Expression -> s
+walk transform merge exp@(Implication e1 e2) = merge exp [walk transform merge e1, walk transform merge e2]
+walk transform merge exp@(Disjunction e1 e2) = merge exp [walk transform merge e1, walk transform merge e2]
+walk transform merge exp@(Conjunction e1 e2) = merge exp [walk transform merge e1, walk transform merge e2]
+walk transform merge exp@(Predicate _ ts) = merge exp $ map transform ts
+walk transform merge exp@(Not e) = merge exp [walk transform merge e]
+walk transform merge exp@(Quantifier q var e) = merge exp [walk transform merge e]
 
 freedomOfVariables :: Expression -> (DS.Set String, DS.Set String)
-freedomOfVariables = walk (\t -> (DS.empty, wt t)) (\_ v -> (DS.singleton v, DS.empty)) merge where
-    wt = walkTerm DS.singleton DS.empty (\t lst -> DS.unions lst)
-    merge _ lst = foldl (\(at, af) (nt, nf) -> (DS.union at nt, (DS.union af nf) DS.\\ DS.union at nt)) (DS.empty, DS.empty) lst
+freedomOfVariables = walk (\t -> (DS.empty, wt t)) merge where
+    wt = walkTerm DS.singleton DS.empty (\_ lst -> DS.unions lst)
+    merge (Quantifier _ v _) lst = (\(t, f) -> (DS.insert v t, DS.delete v f)) (fld lst)
+    merge _ lst = fld lst
+    fld = foldl (\(at, af) (nt, nf) -> (DS.union at nt, DS.union af nf)) (DS.empty, DS.empty)
 
 boundedVariables = fst . freedomOfVariables
 
 freeVariables = snd . freedomOfVariables
+
+isVariableFree var exp = not $ DS.member var (boundedVariables exp)
+
+parseExpression = happilyParseExpression . alexScanTokens
+parseFile4 = happilyParseFile4 . alexScanTokens
+
+-- substituteVariable :: String -> String -> Expression -> Expression
+-- substituteVariable from to = walk wt (\_ s -> if from == s then to else s) up where
+    -- up :: Expression -> [Expression] -> Expression
+    -- up (Implication a b) [c, d] = Implication c d
+    -- up (Disjunction a b) [c, d] = Disjunction c d
+    -- up (Conjunction a b) [c, d] = Conjunction c d
+    -- up (Predicate name _) terms = Predicate name terms
+    -- up (Not exp) [e] = Not e
+    -- up (Quantifier q _ _) [v,e] = Quantifier q v e
+    -- up (Scheme _) _ = undefined
+    -- wt = walkTerm trans Zero upT
+    -- trans s = Var $ if s == from then to else s
+    -- upT (Sum _ _) [t1, t2] = Sum t1 t2
+    -- upT (Production _ _) [t1, t2] = Production t1 t2
+    -- upT (Function name _) ts = Function name ts
+    -- upT (Hatch _) [t] = Hatch t
 
 instance Show Term where
     show (Sum a b@(Sum _ _)) = (show a) ++ "+(" ++ (show b) ++ ")"
