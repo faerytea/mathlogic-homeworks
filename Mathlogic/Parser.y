@@ -8,7 +8,7 @@ import Data.List(intercalate)
 %name happilyParseFile12 F12
 %name happilyParseProofList ProofList
 %tokentype { Symbol }
-%error { error {- . (++) "Cannot parse: " . concat . map -} . show }
+%error { (\ts -> error $ "Cannot parse: " ++ (concat $ map show ts)) }
 
 %token
     '->'                      { Impl }
@@ -32,7 +32,7 @@ import Data.List(intercalate)
 F12
     : Head 'n' Prf            { File12 $1 $3 }
     | Head 'n'                { File12 $1 (Proof []) }
-    
+
 Head
     : '|-' Expr               { Hdr [] $2 }
     | ExpList '|-' Expr       { Hdr (reverse $1) $3 }
@@ -46,7 +46,7 @@ Prf : ProofList 'n'           { Proof (reverse $1) }
 ProofList
     : Expr                    { $1 : [] }
     | ProofList 'n' Expr      { $3 : $1 }
-    
+
 Expr
     : Disjunct                { Ae $1 }
     | Disjunct '->' Expr      { Implication $1 $3 }
@@ -54,7 +54,7 @@ Expr
 Disjunct
     : Conjunct                { Ad $1 }
     | Disjunct '|' Conjunct   { Or $1 $3 }
-    
+
 Conjunct
     : Tok                     { Ac $1 }
     | Conjunct '&' Tok        { And $1 $3 }
@@ -81,7 +81,7 @@ class MathlogicToken a where
 mapMT :: (MathlogicToken a, MathlogicToken b, MathlogicToken c) => (a -> s -> s) -> (b -> s -> s -> s) -> (String -> s) -> c -> s
 mapMT exit1 exit2 transform exp = mapFMT (wrapfn exit1) (wrapfn exit2) transform (fakeWrap exp) where
     wrapfn f = \x -> f (unwrap x)
-    
+
     -- The BIGGEST crutch in this project
 mapFMT :: (FakeMT -> s -> s) -> (FakeMT -> s -> s -> s) -> (String -> s) -> FakeMT -> s
 mapFMT exit1 exit2 transform exp@(FakeE (Implication d e)) = exit2 exp (mapFMT exit1 exit2 transform (fakeWrap d)) (mapFMT exit1 exit2 transform (fakeWrap e))
@@ -98,10 +98,10 @@ mapFMT exit1 exit2 transform (FakeT (Token (PVar a)))      = transform a
 getProofFromFile12 (File12 _ (Proof proof)) = proof
 
 data PropVariable = PVar String
-data Token = Token PropVariable | Not Token | An Expression | Scheme Char 
-data Conjunction = Ac Token | And Conjunction Token 
-data Disjunction = Ad Conjunction | Or Disjunction Conjunction 
-data Expression = Ae Disjunction | Implication Disjunction Expression 
+data Token = Token PropVariable | Not Token | An Expression | Scheme Char
+data Conjunction = Ac Token | And Conjunction Token
+data Disjunction = Ad Conjunction | Or Disjunction Conjunction
+data Expression = Ae Disjunction | Implication Disjunction Expression
 
 data Header = Hdr [Expression] Expression
 data Proof = Proof [Expression]
