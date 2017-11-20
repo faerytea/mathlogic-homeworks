@@ -1,4 +1,4 @@
-module Mathlogic.Predicate.Checker where
+module Mathlogic.Predicates.Checker where
 
 import Mathlogic.Predicates.Parser
 import Mathlogic.Predicates.Axioms

@@ -9,7 +9,7 @@ import qualified Data.Set as DS
 %name happilyParseFile4 F4
 %name happilyParseProofList ProofList
 %tokentype { Symbol }
-%error { error {- . (++) "Cannot parse: " . concat . map -} . show }
+%error { (\ts -> error $ "Cannot parse: " ++ (concat $ map show ts)) }
 
 %token
     '~'                       { Magic }
@@ -44,7 +44,7 @@ import qualified Data.Set as DS
 F4
     : Head 'n' Prf            { File4 $1 $3 }
     | Head 'n'                { File4 $1 [] }
-    
+
 Head
     : '|-' Expr               { Hdr [] $2 }
     | ExpList '|-' Expr       { Hdr (reverse $1) $3 }
@@ -58,7 +58,7 @@ Prf : ProofList 'n'           { reverse $1 }
 ProofList
     : Expr                    { $1 : [] }
     | ProofList 'n' Expr      { $3 : $1 }
-    
+
 Expr
     : Disjunct                { $1 }
     | Disjunct '->' Expr      { Implication $1 $3 }
@@ -66,7 +66,7 @@ Expr
 Disjunct
     : Conjunct                { $1 }
     | Disjunct '|' Conjunct   { Disjunction $1 $3 }
-    
+
 Conjunct
     : Un                      { $1 }
     | Conjunct '&' Un         { Conjunction $1 $3 }
@@ -114,8 +114,8 @@ data Expression  = Implication Expression Expression
                  | Disjunction Expression Expression
                  | Conjunction Expression Expression
                  | Predicate String [Term]
-                 | Not Expression 
-                 | Quantifier QType String Expression 
+                 | Not Expression
+                 | Quantifier QType String Expression
                  | Scheme String
                  deriving Eq
 data Term = Sum Term Term

@@ -46,6 +46,21 @@ Mathlogic/Predicates/Tokens.o : Mathlogic/Predicates/Tokens.x
 	alex Mathlogic/Predicates/Tokens.x
 	ghc -O2 Mathlogic/Predicates/Tokens.hs
 
+test4A : test4iA test4cA
+
+test4iA : test4i1 test4i2 test4i3 test4i4 test4i5 test4i6 test4i7 test4i8 test4i9 test4i10 test4i11
+
+test4cA : test4c1 test4c2 test4c5 test4c6 test4c7 test4c8 test4c9 test4c10 test4c11 test4c11 test4c11 test4c14 test4c15
+
+Mathlogic/Predicates/Main : Mathlogic/Predicates/Main.hs Mathlogic/Predicates/Checker.o Mathlogic/Predicates/Parser.o
+	ghc -O2 Mathlogic/Predicates/Main.hs
+
+test4c% : ../logic2014/tests/HW4/correct%.in Mathlogic/Predicates/Main
+	Mathlogic/Predicates/Main $<
+
+test4i% : ../logic2014/tests/HW4/incorrect%.in Mathlogic/Predicates/Main
+	Mathlogic/Predicates/Main $<
+
 clean :
 	rm -f ./Mathlogic/*.hi ./Mathlogic/*.o ./Mathlogic/*.exe                                        # files in Mathlogic dir
 	rm -f ./Mathlogic/Predicates/*.hi ./Mathlogic/Predicates/*.o ./Mathlogic/Predicates/*.exe       # files in Mathlogic/Predicates dir
