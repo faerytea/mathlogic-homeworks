@@ -1,4 +1,4 @@
-all : homework1 homework2 homework3
+all : homework1 homework2 homework3 homework4
 
 homework1 : Mathlogic.o Mathlogic/Annotations.o homework1.hs
 	ghc -O2 homework1
@@ -8,6 +8,9 @@ homework2 : Mathlogic.o Mathlogic/Deduction.o homework2.hs
 
 homework3 : Mathlogic.o Mathlogic/Proof.o homework3.hs
 	ghc -O2 homework3
+
+homework4 : Mathlogic/Predicates/Deduction.o Mathlogic/Predicates/Parser.o homework4.hs
+	ghc -O2 homework4
 
 Mathlogic/Annotations.o : Mathlogic.o Mathlogic/Parser.o Mathlogic/Annotations.hs
 	ghc -O2 Mathlogic/Annotations.hs
@@ -45,6 +48,9 @@ Mathlogic/Predicates/Parser.o : Mathlogic/Predicates/Tokens.o Mathlogic/Predicat
 Mathlogic/Predicates/Tokens.o : Mathlogic/Predicates/Tokens.x
 	alex Mathlogic/Predicates/Tokens.x
 	ghc -O2 Mathlogic/Predicates/Tokens.hs
+
+Mathlogic/Predicates/Deduction.o : Mathlogic/Predicates/Deduction.hs Mathlogic/Predicates/Checker.o Mathlogic/Predicates/Parser.o
+	ghc -O2 Mathlogic/Predicates/Deduction.hs
 
 test4A : test4iA test4cA
 

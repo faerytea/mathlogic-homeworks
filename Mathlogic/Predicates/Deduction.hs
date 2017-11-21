@@ -58,14 +58,19 @@ produce (File4 (Hdr preps exp) proof) = (foldl' magic (Right []) (zip [1..] proo
         | checkExistsRule expNo curExp /= Just Bad = Left (expNo, fromJust $ checkExistsRule expNo curExp)
         | otherwise                                = Left (expNo, Bad)
     checkPrepositions e = any ((==) e) preps
+    -- checkBadAxiomUsage var be = if var `DS.member` bad then Just (BadUsageScheme var be) else Nothing
     checkAxioms e = case getMathedAxiom e of
         Left (Bounded var sub e2) -> Just $ BoundedVariable var sub e2
         Left NotAnAxiom           -> Just Bad
+        -- Right (11, _)             -> let be@(Implication q@(Quantifier All var psi) spsi) = e in checkBadAxiomUsage var be
+        -- Right (12, _)             -> let be@(Implication spsi q@(Quantifier Ex var psi))  = e in checkBadAxiomUsage var be
         Right _                   -> Nothing
     checkMP :: Int -> Expression -> Maybe Expression -- checkMP n a = Just b for b -> a and b
-    checkMP no t = find fimpt (take (no-1) proof) >>= \(Implication x _) -> find (== x) (take (no-1) proof) where
+    checkMP no t = mHead $ filter fimpt (take (no-1) proof) >>= \(Implication x _) -> filter (== x) (take (no-1) proof) where
         fimpt (Implication from to) = to == t
         fimpt _ = False
+        mHead [] = Nothing
+        mHead (x:_) = Just x
     makeMPProof f t = [ Implication lastPrep t
                       , Implication (Implication lastPrep (Implication f t)) (Implication lastPrep t)
                       , Implication (Implication lastPrep f) (Implication (Implication lastPrep (Implication f t)) (Implication lastPrep t)) ]
@@ -79,7 +84,7 @@ produce (File4 (Hdr preps exp) proof) = (foldl' magic (Right []) (zip [1..] proo
     checkAnyRule n (Implication phi (Quantifier All var psi))
         | DS.member var bad                 = Just $ BadUsageRule var lastPrep
         | DS.member var $ freeVariables phi = Just $ FreeVariable var phi
-        | otherwise                         = if any (== Implication psi phi) $ take (n - 1) proof then Nothing else Just Bad
+        | otherwise                         = if any (== Implication phi psi) $ take (n - 1) proof then Nothing else Just Bad
     checkAnyRule _ _ = Just Bad
     makeAllProof (Implication l (Quantifier All v r)) = makeQProof l r v allProof
     exProof = reverse $ map parseExpression [ "~B->~A->~B",

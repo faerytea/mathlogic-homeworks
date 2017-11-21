@@ -9,7 +9,7 @@ import qualified Data.Set as DS
 %name happilyParseFile4 F4
 %name happilyParseProofList ProofList
 %tokentype { Symbol }
-%error { (\ts -> error $ "Cannot parse: " ++ (concat $ map show ts)) }
+%error { (\ts -> error $ "Cannot parse: " ++ (concat $ take 20 $ map show ts)) }
 
 %token
     '~'                       { Magic }
@@ -194,12 +194,12 @@ instance Show Term where
 instance Show Expression where
     show (Implication a@(Implication _ _) b) = "(" ++ (show a) ++ ")->" ++ (show b)
     show (Implication a b) = (show a) ++ "->" ++ (show b)
-    show (Disjunction a@(Implication _ _) b@(Implication _ _)) = "(" ++ (show a) ++ ")&(" ++ (show b) ++ ")"
-    show (Disjunction a@(Implication _ _) b@(Disjunction _ _)) = "(" ++ (show a) ++ ")&(" ++ (show b) ++ ")"
-    show (Disjunction a@(Implication _ _) b)                   = "(" ++ (show a) ++ ")&" ++ (show b)
-    show (Disjunction a b@(Implication _ _)) = (show a) ++ "&(" ++ (show b) ++ ")"
-    show (Disjunction a b@(Disjunction _ _)) = (show a) ++ "&(" ++ (show b) ++ ")"
-    show (Disjunction a b)                   = (show a) ++ "&" ++ (show b)
+    show (Disjunction a@(Implication _ _) b@(Implication _ _)) = "(" ++ (show a) ++ ")|(" ++ (show b) ++ ")"
+    show (Disjunction a@(Implication _ _) b@(Disjunction _ _)) = "(" ++ (show a) ++ ")|(" ++ (show b) ++ ")"
+    show (Disjunction a@(Implication _ _) b)                   = "(" ++ (show a) ++ ")|" ++ (show b)
+    show (Disjunction a b@(Implication _ _)) = (show a) ++ "|(" ++ (show b) ++ ")"
+    show (Disjunction a b@(Disjunction _ _)) = (show a) ++ "|(" ++ (show b) ++ ")"
+    show (Disjunction a b)                   = (show a) ++ "|" ++ (show b)
     show (Conjunction a@(Implication _ _) b@(Implication _ _)) = "(" ++ (show a) ++ ")&(" ++ (show b) ++ ")"
     show (Conjunction a@(Implication _ _) b@(Disjunction _ _)) = "(" ++ (show a) ++ ")&(" ++ (show b) ++ ")"
     show (Conjunction a@(Implication _ _) b@(Conjunction _ _)) = "(" ++ (show a) ++ ")&(" ++ (show b) ++ ")"
@@ -213,7 +213,7 @@ instance Show Expression where
     show (Conjunction a b@(Conjunction _ _)) = (show a) ++ "&(" ++ (show b) ++ ")"
     show (Conjunction a b) = (show a) ++ "&" ++ (show b)
     show (Predicate name []) = name
-    show (Predicate "=" [a,b]) = (show a) ++ "=" ++ (show b)
+    show (Predicate "=" [a,b]) = "(" ++ (show a) ++ "=" ++ (show b) ++ ")"
     show (Predicate name terms) = name ++ "(" ++ (intercalate "," $ map show terms) ++ ")"
     show (Not e@(Implication _ _)) = "!(" ++ (show e) ++ ")"
     show (Not e@(Disjunction _ _)) = "!(" ++ (show e) ++ ")"
