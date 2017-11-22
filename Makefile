@@ -1,4 +1,4 @@
-all : homework1 homework2 homework3 homework4
+all : homework1 homework2 homework3 homework4 homework5
 
 homework1 : Mathlogic.o Mathlogic/Annotations.o homework1.hs
 	ghc -O2 homework1
@@ -11,6 +11,9 @@ homework3 : Mathlogic.o Mathlogic/Proof.o homework3.hs
 
 homework4 : Mathlogic/Predicates/Deduction.o Mathlogic/Predicates/Parser.o homework4.hs
 	ghc -O2 homework4
+
+homework5 : Mathlogic/Predicates/Parser.o Mathlogic/Predicates/Sum.o homework5.hs
+	ghc -O2 homework5
 
 Mathlogic/Annotations.o : Mathlogic.o Mathlogic/Parser.o Mathlogic/Annotations.hs
 	ghc -O2 Mathlogic/Annotations.hs
@@ -52,6 +55,9 @@ Mathlogic/Predicates/Tokens.o : Mathlogic/Predicates/Tokens.x
 Mathlogic/Predicates/Deduction.o : Mathlogic/Predicates/Deduction.hs Mathlogic/Predicates/Checker.o Mathlogic/Predicates/Parser.o
 	ghc -O2 Mathlogic/Predicates/Deduction.hs
 
+Mathlogic/Predicates/Sum.o : Mathlogic/Predicates/Parser.o Mathlogic/Predicates/Sum.hs
+	ghc -O2 Mathlogic/Predicates/Sum.hs
+
 test4A : test4iA test4cA
 
 test4iA : test4i1 test4i2 test4i3 test4i4 test4i5 test4i6 test4i7 test4i8 test4i9 test4i10 test4i11
@@ -70,6 +76,6 @@ test4i% : ../logic2014/tests/HW4/incorrect%.in Mathlogic/Predicates/Main
 clean :
 	rm -f ./Mathlogic/*.hi ./Mathlogic/*.o ./Mathlogic/*.exe                                        # files in Mathlogic dir
 	rm -f ./Mathlogic/Predicates/*.hi ./Mathlogic/Predicates/*.o ./Mathlogic/Predicates/*.exe       # files in Mathlogic/Predicates dir
-	rm -f homework1 homework2 homework3 *.hi *.o *.exe                                              # files in root dir
+	rm -f homework1 homework2 homework3 homework4 homework5 *.hi *.o *.exe                          # files in root dir
 	rm -f Mathlogic/Parser.hs Mathlogic/Tokens.hs Mathlogic/*.info                                  # some generated files in Mathlogic dir
 	rm -f Mathlogic/Predicates/Parser.hs Mathlogic/Predicates/Tokens.hs Mathlogic/Predicates/*.info # some generated files in Mathlogic/Predicates dir
