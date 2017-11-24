@@ -92,7 +92,7 @@ genABAB a b = (reverse $ map (substituteTerm "a" a
                                                , "@b((a=b)->(a'=b'))"
                                                , "@b((a=b)->(a'=b'))->((a=b)->(a'=b'))"
                                                , "(a=b)->(a'=b')"
-                                               , "a'=b'" ]) -- TODO
+                                               , "a'=b'" ])
            ++ baseABAB
 
 baseABAB = reverse $ map parseExpression [ "(a=b)->(a'=b')"
