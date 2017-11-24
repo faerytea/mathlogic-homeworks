@@ -3,23 +3,22 @@ module Mathlogic.Predicates.Sum where
 import Mathlogic.Predicates.Parser
 import Data.List(foldl')
 
-genProof ai 0  = reverse $ genA0A $ numToPeano ai
-genProof ai bi = reverse (final ++ rev ++ abab2 ++ abab ++ a0a ++ abEQba) where
+genProof ai 0  = reverse $ genA0A (numToPeano ai) ++ map parseExpression ["A&B->B", "a+0=a"]
+genProof ai bi = reverse (abab ++ a0a ++ abEQba) where
     ap = numToPeano ai
     bp = numToPeano bi
     Hatch bpd = bp
-    a0a = genA0A ap            -- a''''+0=a''''
-    abab = genABAB ap bpd      -- (a''''+b'''')' = 0'''''''''
-    abab2 = genABAB2 ap bpd    -- a''''+b''''' = (a''''+b'''')'
     (^+^) = Sum
-    (Predicate "=" [toRevA, toRevB]) = head abab2
-    rev = genRev toRevA toRevB -- a''''+b''''' = (a''''+b'''')'
-    intermediate = Hatch (ap ^+^ bpd)
-    ansl = ap ^+^ bp
-    ansr = numToPeano (ai + bi)
-    final = finishProof intermediate ansl ansr
-
-    -- map (genABAB ap) $ take (bi + 1) $ iterate Hatch Zero
+    (^=^) a b = Predicate "=" [a, b]
+    succPeanoFrom x = iterate Hatch (numToPeano x)
+    a0a = genA0A ap            -- a''''+0=a''''
+    upB bc cc = let im = Hatch $ ap ^+^ bc
+                    bn = Hatch bc
+                in  (finishProof im (ap ^+^ bn) (Hatch cc))
+                 ++ (genRev (ap ^+^ bn) im)
+                 ++ (genABAB (ap ^+^ bc) cc)
+                 ++ (genABAB2 ap bc)
+    abab = concatMap (\(bc,cc) -> upB bc cc) $ reverse $ take bi $ zip (succPeanoFrom 0) (succPeanoFrom ai)
 
 substituteTerm :: String -> Term -> Expression -> Expression
 substituteTerm var sub = st where
@@ -39,8 +38,11 @@ substituteTerm var sub = st where
 
 numToPeano x = foldl' (\a f -> f a) Zero $ replicate x Hatch
 
+peanoToNum Zero = 0
+peanoToNum (Hatch a) = 1 + peanoToNum a
+
 abEQba = reverse $ map parseExpression [ "a=b->a=c->b=c"
-                                       , "0=0->0=0->0=0"
+                                       , "A&B->B" -- just short axiom (can be freely replaced with any other)
                                        , "(a=b->a=c->b=c)->((A&B->B)->(a=b->a=c->b=c))"
                                        , "(A&B->B)->(a=b->a=c->b=c)"
                                        , "(A&B->B)->@c(a=b->a=c->b=c)"
@@ -58,9 +60,7 @@ abEQba = reverse $ map parseExpression [ "a=b->a=c->b=c"
                                        , "a=a->(a=b->a=a->b=a)->(a=b->b=a)"
                                        , "(a=a->a=b->a=a->b=a)->(a=a->(a=b->a=a->b=a)->a=b->b=a)->a=a->a=b->b=a"
                                        , "(a=a->(a=b->a=a->b=a)->a=b->b=a)->a=a->a=b->b=a"
-                                       , "a=a->a=b->b=a"
-                                       , "(A&B->B)->(a=b->a=c->b=c)"
-                                       , "(A&B->B)->@c(a=b->a=c->b=c)"
+                                       , "a=a->a=b->b=a" -- there should be 2 more lines, see lines 4-5
                                        , "(A&B->B)->@b@c(a=b->a=c->b=c)"
                                        , "(A&B->B)->@a@b@c(a=b->a=c->b=c)"
                                        , "@a@b@c(a=b->a=c->b=c)"
@@ -69,8 +69,8 @@ abEQba = reverse $ map parseExpression [ "a=b->a=c->b=c"
                                        , "@b@c(a+0=b->a+0=c->b=c)->@c(a+0=a->a+0=c->a=c)"
                                        , "@c(a+0=a->a+0=c->a=c)"
                                        , "@c(a+0=a->a+0=c->a=c)->(a+0=a->a+0=a->a=a)"
-                                       , "(a+0=a->a+0=a->a=a)"
                                        , "a+0=a"
+                                       , "(a+0=a->a+0=a->a=a)"
                                        , "a+0=a->a=a"
                                        , "a=a"
                                        , "a=b->b=a" ]
@@ -92,7 +92,7 @@ genABAB a b = (reverse $ map (substituteTerm "a" a
                                                , "@b((a=b)->(a'=b'))"
                                                , "@b((a=b)->(a'=b'))->((a=b)->(a'=b'))"
                                                , "(a=b)->(a'=b')"
-                                               , "a'=b'" ])
+                                               , "a'=b'" ]) -- TODO
            ++ baseABAB
 
 baseABAB = reverse $ map parseExpression [ "(a=b)->(a'=b')"
@@ -136,7 +136,9 @@ finishProof a b c = reverse $ map (substituteTerm "a" a
                                  . substituteTerm "b" b
                                  . substituteTerm "c" c
                                  . parseExpression) [ "@a@b@c((a=b)->(a=c)->(b=c))->@b@c((a=b)->(a=c)->(b=c))"
+                                                    , "@b@c((a=b)->(a=c)->(b=c))" -- see a=a proof
                                                     , "@b@c((a=b)->(a=c)->(b=c))->@c((a=b)->(a=c)->(b=c))"
+                                                    , "@c((a=b)->(a=c)->(b=c))"
                                                     , "@c((a=b)->(a=c)->(b=c))->((a=b)->(a=c)->(b=c))"
                                                     , "(a=b)->(a=c)->(b=c)"
                                                     , "(a=c)->(b=c)"
